@@ -1,0 +1,31 @@
+import com.cloudbees.hudson.plugins.modeling.*
+pipeline {
+    agent any
+
+    tools {
+        // Install the Maven version configured as "M3" and add it to the path.
+        maven "M2_HOME"
+    }
+    stages {	
+        stage('SAST Analysis') {
+            steps {			
+                git "https://github.com/sai840/war-web-project.git"
+                sh "git clone https://github.com/harishpallapu/sonarqube-scanner-scripts.git"
+                sh "./sonarqube-scanner-scripts/sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner.sh"
+
+        } 
+        }
+	stage('build') {
+            steps {
+                git "https://github.com/sai840/war-web-project.git"
+							sh 'mvn clean package'							
+            }
+	 }
+     stage("deploy") {
+         steps {
+				
+            deploy adapters: [tomcat8(credentialsId: 'tomcat webserver', path: '', url: 'http://localhost:8084/')], contextPath: null, war: '**/*.war'
+					}
+				}
+	}
+	}
